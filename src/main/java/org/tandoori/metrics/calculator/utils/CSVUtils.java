@@ -1,4 +1,4 @@
-package utils;
+package org.tandoori.metrics.calculator.utils;
 
 import java.io.IOException;
 import java.io.Writer;

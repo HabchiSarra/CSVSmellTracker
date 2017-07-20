@@ -1,4 +1,4 @@
-package developers;
+package org.tandoori.metrics.calculator;
 
 /**
  * Parse a Tandoori smell analysis CSV line.

@@ -1,7 +1,7 @@
-package developers;
+package org.tandoori.metrics.calculator;
 
 
-import utils.CSVUtils;
+import org.tandoori.metrics.calculator.utils.CSVUtils;
 
 import java.io.File;
 import java.io.FileWriter;

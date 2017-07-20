@@ -1,7 +1,4 @@
-package developers;
-
-import java.util.Arrays;
-import java.util.List;
+package org.tandoori.metrics.calculator;
 
 /**
  * Describe the additions and deletions of a specific smell
