@@ -21,12 +21,16 @@ public class SmellsProcessor implements DeveloperSet {
 
     public void process() {
         SmellProcessor processor;
-        String smellName;
-        List<CommitSmell> commits = new ArrayList<CommitSmell>();
+        SmellCode smell;
+        List<CommitSmell> commits = new ArrayList<>();
         for (File smellFile : smellFiles) {
-            smellName = getSmellName(smellFile);
-            processor = new SmellProcessor(smellName, smellFile, this);
-            commits.addAll(processor.process());
+            smell = getSmellName(smellFile);
+            // If we can't parse the file name we consider it as non-smell file
+            if (smell != null) {
+                System.out.println("Processing smell file:" + smellFile.getName());
+                processor = new SmellProcessor(smell.name(), smellFile, this);
+                commits.addAll(processor.process());
+            }
         }
         record(commits);
     }
@@ -37,9 +41,25 @@ public class SmellsProcessor implements DeveloperSet {
      * @param smellFile
      * @return
      */
-    private String getSmellName(File smellFile) {
+    private SmellCode getSmellName(File smellFile) {
         String[] split = smellFile.getName().split("_");
-        return split[split.length - 1].split(".")[0];
+        String smellName;
+
+        // Parsing the file name
+        try {
+            smellName = split[split.length - 1].split("\\.")[0];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.err.println("Unable to parse smell name for file: " + smellFile.getName());
+            return null;
+        }
+
+        // Parsing the smell name
+        try {
+            return SmellCode.valueOf(smellName);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Unknown smell name: " + smellName);
+            return null;
+        }
     }
 
     /**
@@ -47,9 +67,10 @@ public class SmellsProcessor implements DeveloperSet {
      *
      * @param commits The analyzed smells to write out.
      */
-    public void record(List<CommitSmell> commits) {
+    private void record(List<CommitSmell> commits) {
         FileWriter fileWriter = null;
         try {
+            System.out.println("Writing output file:" + outputCsvFile.getName());
             fileWriter = new FileWriter(outputCsvFile);
             recordValues(commits, fileWriter);
         } catch (IOException e) {
