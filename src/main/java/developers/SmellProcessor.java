@@ -8,48 +8,43 @@ import java.util.List;
  * Created by sarra on 18/07/17.
  */
 public class SmellProcessor {
-    private static final String SEPARATOR = ",";
+    private final String smellName;
     private final File inputCsvFile;
-    private DeveloperSet developerSet;
+    private final DeveloperSet developerSet;
 
-    public SmellProcessor(File inputCsvFile, DeveloperSet developerSet) {
+    public SmellProcessor(String smellName, File inputCsvFile, DeveloperSet developerSet) {
+        this.smellName = smellName;
         this.inputCsvFile = inputCsvFile;
         this.developerSet = developerSet;
     }
 
-    public List<Commit> process() {
+    public List<CommitSmell> process() {
         BufferedReader br = null;
         String line;
-        List<Commit> commits = new ArrayList<Commit>();
-        int currentCommit;
-        int previousCommit = 0;
+        List<CommitSmell> commits = new ArrayList<CommitSmell>();
+        int previousCommit = -1;
         List<String> previousSmells = new ArrayList<String>();
         List<String> currentSmells = new ArrayList<String>();
-        int lineNumber = 0;
         try {
 
             br = new BufferedReader(new FileReader(inputCsvFile));
-            Commit parsedCommit;
-            String developer;
+            CommitSmell parsedCommit;
+            InputSmell smell;
             while ((line = br.readLine()) != null) {
-                String[] lineContent = line.split(SEPARATOR);
-                if (lineContent.length < 4) {
-                    System.err.println("Error : line number " + lineNumber);
-                }
-                currentCommit = Integer.valueOf(lineContent[0]);
-                if (currentCommit == previousCommit) {
-                    currentSmells.add(lineContent[2]);
+                smell = InputSmell.fromLine(line);
+                if (smell.commitNumber == previousCommit) {
+                    currentSmells.add(smell.name);
                 } else {
-                    developer = lineContent[3];
-                    developerSet.notify(developer);
-                    parsedCommit = new Commit(currentCommit, lineContent[1], developer);
+                    developerSet.notify(smell.developer);
+                    parsedCommit = new CommitSmell(smellName,
+                            smell.commitNumber, smell.commitSha,
+                            smell.status, smell.developer);
                     parsedCommit.setSmells(compareCommits(previousSmells, currentSmells));
                     commits.add(parsedCommit);
 
                     previousSmells = currentSmells;
                     currentSmells = new ArrayList<String>();
                 }
-                lineNumber++;
             }
 
         } catch (FileNotFoundException e) {
