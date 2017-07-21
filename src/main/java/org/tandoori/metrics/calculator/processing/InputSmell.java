@@ -1,5 +1,8 @@
 package org.tandoori.metrics.calculator.processing;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Parse a Tandoori smell analysis CSV line.
  *
@@ -7,6 +10,7 @@ package org.tandoori.metrics.calculator.processing;
  * commitNumber, commitSha, smellInstance, developer, commitStatus
  */
 class InputSmell {
+    private static final Logger logger = LoggerFactory.getLogger(InputSmell.class.getName());
     private static final String SEPARATOR = ",";
 
     final String name;
@@ -26,7 +30,7 @@ class InputSmell {
     public static InputSmell fromLine(String line){
         String[] content = line.split(SEPARATOR);
         if (content.length < 4) {
-            System.err.println("Unable to parse smell input: " + line);
+            logger.warn("Unable to parse smell input: " + line);
         }
         return new InputSmell(content[2], Integer.valueOf(content[0]), content[1], content[3], content[4]);
     }

@@ -1,5 +1,7 @@
 package org.tandoori.metrics.calculator.writer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.SmellCode;
 
 import java.util.ArrayList;
@@ -8,7 +10,9 @@ import java.util.List;
 /**
  * Created by sarra on 20/07/17.
  */
-public class CommitOutput {
+class CommitOutput {
+    private static final Logger logger = LoggerFactory.getLogger(CommitOutput.class.getName());
+
     public final int commitNumber;
     public final String sha;
     public final String developer;
@@ -36,7 +40,7 @@ public class CommitOutput {
             introducedSmells[offset] = introduced;
             introducedSmells[offset] = refactored;
         } catch (IllegalArgumentException e) {
-            System.err.println("Could not parse smell name: " + name);
+            logger.warn("Could not parse smell name: " + name);
         }
     }
 

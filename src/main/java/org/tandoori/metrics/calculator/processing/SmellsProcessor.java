@@ -1,6 +1,8 @@
 package org.tandoori.metrics.calculator.processing;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.DevelopersHandler;
 import org.tandoori.metrics.calculator.SmellCode;
 import org.tandoori.metrics.calculator.writer.SmellSummaryWriter;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 public class SmellsProcessor implements DevelopersHandler {
+    private static final Logger logger = LoggerFactory.getLogger(SmellsProcessor.class.getName());
     private final Map<String, Integer> developersCode = new HashMap<String, Integer>();
 
     private List<File> smellFiles;
@@ -30,7 +33,7 @@ public class SmellsProcessor implements DevelopersHandler {
             smell = getSmellName(smellFile);
             // If we can't parse the file name we consider it as non-smell file
             if (smell != null) {
-                System.out.println("Processing smell file:" + smellFile.getName());
+                logger.info("Processing smell file: " + smellFile.getName());
                 processor = new SmellProcessor(smell.name(), smellFile, this);
                 commits.addAll(processor.process());
             }
@@ -52,7 +55,7 @@ public class SmellsProcessor implements DevelopersHandler {
         try {
             smellName = split[split.length - 1].split("\\.")[0];
         } catch (ArrayIndexOutOfBoundsException e) {
-            System.err.println("Unable to parse smell name for file: " + smellFile.getName());
+            logger.warn("Unable to parse smell name for file: " + smellFile.getName());
             return null;
         }
 
@@ -60,7 +63,7 @@ public class SmellsProcessor implements DevelopersHandler {
         try {
             return SmellCode.valueOf(smellName);
         } catch (IllegalArgumentException e) {
-            System.err.println("Unknown smell name: " + smellName);
+            logger.warn("Unknown smell name: " + smellName);
             return null;
         }
     }
