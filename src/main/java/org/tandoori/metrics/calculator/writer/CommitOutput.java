@@ -70,6 +70,9 @@ class CommitOutput {
         }
 
         for (int i = 0; i < NB_SMELLS; i++) {
+            logger.trace("Dev n°" + devOffset + " introduced " + introducedSmells[i] + " smells (commit " + commitNumber + ")");
+            logger.trace("Dev n°" + devOffset + " refactored " + refactoredSmells[i] + " smells (commit " + commitNumber + ")");
+
             result.add(String.valueOf(introducedSmells[i]));
             result.add(String.valueOf(refactoredSmells[i]));
         }
