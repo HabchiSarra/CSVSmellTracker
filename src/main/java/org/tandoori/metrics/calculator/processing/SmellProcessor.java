@@ -6,7 +6,6 @@ import org.tandoori.metrics.calculator.DevelopersHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ class SmellProcessor {
             br = new BufferedReader(new FileReader(inputCsvFile));
             CommitSmell parsedCommit;
             InputSmell smell;
-            if (logger.isTraceEnabled()){
+            if (logger.isTraceEnabled()) {
                 logger.trace("Wiping out header line: " + br.readLine());
             } else {
                 br.readLine();
@@ -64,16 +63,14 @@ class SmellProcessor {
                 }
             }
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Unable to read file: " + inputCsvFile);
         } finally {
             if (br != null) {
                 try {
                     br.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Unable to close reader for file: " + inputCsvFile);
                 }
             }
         }
