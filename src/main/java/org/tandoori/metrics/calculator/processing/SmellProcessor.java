@@ -41,6 +41,11 @@ class SmellProcessor {
             br = new BufferedReader(new FileReader(inputCsvFile));
             CommitSmell parsedCommit;
             InputSmell smell;
+            if (logger.isTraceEnabled()){
+                logger.trace("Wiping out header line: " + br.readLine());
+            } else {
+                br.readLine();
+            }
             while ((line = br.readLine()) != null) {
                 logger.trace("Parsing line: " + line);
                 smell = InputSmell.fromLine(line);
