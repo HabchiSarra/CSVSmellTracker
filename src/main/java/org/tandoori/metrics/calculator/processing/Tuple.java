@@ -1,4 +1,4 @@
-package org.tandoori.metrics.calculator;
+package org.tandoori.metrics.calculator.processing;
 
 /**
  * Created by sarra on 18/07/17.

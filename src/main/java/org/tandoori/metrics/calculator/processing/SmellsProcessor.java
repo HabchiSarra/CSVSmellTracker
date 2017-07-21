@@ -1,6 +1,8 @@
-package org.tandoori.metrics.calculator;
+package org.tandoori.metrics.calculator.processing;
 
 
+import org.tandoori.metrics.calculator.DevelopersHandler;
+import org.tandoori.metrics.calculator.SmellCode;
 import org.tandoori.metrics.calculator.writer.SmellSummaryWriter;
 
 import java.io.File;

@@ -1,4 +1,6 @@
-package org.tandoori.metrics.calculator;
+package org.tandoori.metrics.calculator.writer;
+
+import org.tandoori.metrics.calculator.SmellCode;
 
 import java.util.ArrayList;
 import java.util.List;

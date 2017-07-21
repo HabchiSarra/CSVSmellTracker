@@ -2,11 +2,10 @@ package org.tandoori.metrics.calculator;
 
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
+import org.tandoori.metrics.calculator.processing.SmellsProcessor;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

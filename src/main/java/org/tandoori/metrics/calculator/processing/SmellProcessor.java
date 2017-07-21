@@ -1,4 +1,6 @@
-package org.tandoori.metrics.calculator;
+package org.tandoori.metrics.calculator.processing;
+
+import org.tandoori.metrics.calculator.DevelopersHandler;
 
 import java.io.*;
 import java.util.ArrayList;

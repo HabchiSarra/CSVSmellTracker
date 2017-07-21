@@ -1,4 +1,4 @@
-package org.tandoori.metrics.calculator;
+package org.tandoori.metrics.calculator.processing;
 
 /**
  * Describe the additions and deletions of a specific smell

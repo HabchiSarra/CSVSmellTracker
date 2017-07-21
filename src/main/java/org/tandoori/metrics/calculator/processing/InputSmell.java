@@ -1,4 +1,4 @@
-package org.tandoori.metrics.calculator;
+package org.tandoori.metrics.calculator.processing;
 
 /**
  * Parse a Tandoori smell analysis CSV line.
@@ -6,7 +6,7 @@ package org.tandoori.metrics.calculator;
  * We are expecting data of the form:
  * commitNumber, commitSha, smellInstance, developer, commitStatus
  */
-public class InputSmell {
+class InputSmell {
     private static final String SEPARATOR = ",";
 
     final String name;

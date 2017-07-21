@@ -1,7 +1,6 @@
 package org.tandoori.metrics.calculator.writer;
 
-import org.tandoori.metrics.calculator.CommitOutput;
-import org.tandoori.metrics.calculator.CommitSmell;
+import org.tandoori.metrics.calculator.processing.CommitSmell;
 import org.tandoori.metrics.calculator.DevelopersHandler;
 import org.tandoori.metrics.calculator.SmellCode;
 import org.tandoori.metrics.calculator.utils.CSVUtils;

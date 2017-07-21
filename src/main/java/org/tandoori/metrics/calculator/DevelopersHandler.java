@@ -1,7 +1,5 @@
 package org.tandoori.metrics.calculator;
 
-import java.util.List;
-
 /**
  * Created by sarra on 18/07/17.
  */
