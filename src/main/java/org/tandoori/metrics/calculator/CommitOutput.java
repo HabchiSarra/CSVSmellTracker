@@ -56,7 +56,7 @@ public class CommitOutput {
         List<String> result = new ArrayList<String>(3 + totalDev * NB_SMELLS);
         result.add(String.valueOf(commitNumber));
         result.add(sha);
-        result.add(developer);
+        result.add(status);
 
         // We fill empty rows for each developer's smells introduced and refactored before us
         for (int i = 0; i < devOffset * NB_SMELLS * 2; i++) {

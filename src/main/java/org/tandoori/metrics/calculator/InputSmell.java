@@ -28,6 +28,6 @@ public class InputSmell {
         if (content.length < 4) {
             System.err.println("Unable to parse smell input: " + line);
         }
-        return new InputSmell(content[2], Integer.valueOf(content[0]), content[1], content[2], content[2]);
+        return new InputSmell(content[2], Integer.valueOf(content[0]), content[1], content[3], content[4]);
     }
 }

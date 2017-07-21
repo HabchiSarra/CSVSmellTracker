@@ -10,12 +10,12 @@ import java.util.List;
 public class SmellProcessor {
     private final String smellName;
     private final File inputCsvFile;
-    private final DeveloperSet developerSet;
+    private final DevelopersHandler developersHandler;
 
-    public SmellProcessor(String smellName, File inputCsvFile, DeveloperSet developerSet) {
+    public SmellProcessor(String smellName, File inputCsvFile, DevelopersHandler developersHandler) {
         this.smellName = smellName;
         this.inputCsvFile = inputCsvFile;
-        this.developerSet = developerSet;
+        this.developersHandler = developersHandler;
     }
 
     public List<CommitSmell> process() {
@@ -35,7 +35,7 @@ public class SmellProcessor {
                 if (smell.commitNumber == previousCommit) {
                     currentSmells.add(smell.name);
                 } else {
-                    developerSet.notify(smell.developer);
+                    developersHandler.notify(smell.developer);
                     parsedCommit = new CommitSmell(smellName,
                             smell.commitNumber, smell.commitSha,
                             smell.status, smell.developer);
