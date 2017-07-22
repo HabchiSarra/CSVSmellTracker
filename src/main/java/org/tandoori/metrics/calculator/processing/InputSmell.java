@@ -29,7 +29,7 @@ class InputSmell {
 
     public static InputSmell fromLine(String line){
         String[] content = line.split(SEPARATOR);
-        if (content.length < 4) {
+        if (content.length < 5) {
             logger.warn("Unable to parse smell input: " + line);
         }
         return new InputSmell(content[2], Integer.valueOf(content[0]), content[1], content[3], content[4]);
