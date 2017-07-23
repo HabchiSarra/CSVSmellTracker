@@ -48,18 +48,20 @@ class SmellProcessor {
             while ((line = br.readLine()) != null) {
                 logger.trace("Parsing line: " + line);
                 smell = InputSmell.fromLine(line);
-                if (smell.commitNumber == previousCommit) {
-                    currentSmells.add(smell.name);
-                } else {
+
+                if (smell.commitNumber != previousCommit) {
                     developersHandler.notify(smell.developer);
-                    parsedCommit = new CommitSmell(smellName,
-                            smell.commitNumber, smell.commitSha,
-                            smell.status, smell.developer);
+                    parsedCommit = new CommitSmell(smellName, smell.commitNumber, smell.commitSha, smell.status, smell.developer);
+
+                    currentSmells.add(smell.name);
                     parsedCommit.setSmells(compareCommits(previousSmells, currentSmells));
                     commits.add(parsedCommit);
 
                     previousSmells = currentSmells;
                     currentSmells = new ArrayList<>();
+                    previousCommit = parsedCommit.commitNumber;
+                } else {
+                    currentSmells.add(smell.name);
                 }
             }
 
@@ -83,6 +85,7 @@ class SmellProcessor {
 
         int countIntroduced = currentInstances.size() - intersect.size();
         int countRefactored = previousInstances.size() - intersect.size();
+        logger.debug("Found " + countIntroduced + " smells introduced and " + countRefactored + " smells refactored");
         return new Tuple<>(countIntroduced, countRefactored);
     }
 }
