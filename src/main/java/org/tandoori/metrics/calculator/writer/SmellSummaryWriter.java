@@ -1,9 +1,10 @@
 package org.tandoori.metrics.calculator.writer;
 
-import org.tandoori.metrics.calculator.CommitOutput;
-import org.tandoori.metrics.calculator.CommitSmell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.DevelopersHandler;
 import org.tandoori.metrics.calculator.SmellCode;
+import org.tandoori.metrics.calculator.processing.CommitSmell;
 import org.tandoori.metrics.calculator.utils.CSVUtils;
 
 import java.io.File;
@@ -18,11 +19,13 @@ import java.util.List;
  * Created by sarra on 20/07/17.
  */
 public class SmellSummaryWriter {
-    public static final String REFACTORED_KEY = "R";
-    public static final String INTRODUCED_KEY = "I";
-    public static final String COMMIT_NUMBER = "commitNumber";
-    public static final String SHA = "sha";
-    public static final String STATUS = "status";
+    private static final Logger logger = LoggerFactory.getLogger(SmellSummaryWriter.class.getName());
+
+    private static final String REFACTORED_KEY = "R";
+    private static final String INTRODUCED_KEY = "I";
+    private static final String COMMIT_NUMBER = "commitNumber";
+    private static final String SHA = "sha";
+    private static final String STATUS = "status";
     private final File outputCsvFile;
     private DevelopersHandler devHandler;
 
@@ -39,17 +42,17 @@ public class SmellSummaryWriter {
     public void write(List<CommitSmell> smells) {
         FileWriter fileWriter = null;
         try {
-            System.out.println("Writing output file:" + outputCsvFile.getName());
+            logger.info("Writing output file:" + outputCsvFile.getName());
             fileWriter = new FileWriter(outputCsvFile);
             recordValues(smells, fileWriter);
         } catch (IOException e) {
-            System.err.println("Unable to open file " + outputCsvFile.getAbsolutePath() + ": " + e.getLocalizedMessage());
+            logger.error("Unable to open file " + outputCsvFile.getAbsolutePath() + ": " + e.getLocalizedMessage());
         } finally {
             if (fileWriter != null) {
                 try {
                     fileWriter.close();
                 } catch (IOException e) {
-                    System.err.println("Unable to close file " + outputCsvFile.getAbsolutePath() + ": " + e.getLocalizedMessage());
+                    logger.error("Unable to close file " + outputCsvFile.getAbsolutePath() + ": " + e.getLocalizedMessage());
                 }
             }
         }
@@ -83,7 +86,7 @@ public class SmellSummaryWriter {
         try {
             CSVUtils.writeLine(fileWriter, getHeaderLine());
         } catch (IOException e) {
-            System.err.println("Unable to print header line: " + e.getLocalizedMessage());
+            logger.warn("Unable to print header line: " + e.getLocalizedMessage());
         }
     }
 
@@ -107,7 +110,7 @@ public class SmellSummaryWriter {
             int totalDev = devHandler.size();
             CSVUtils.writeLine(fileWriter, commit.prepareOutputLine(devOffset, totalDev));
         } catch (IOException e) {
-            System.err.println("Unable to print line for commit" + commit.sha + ": " + e.getLocalizedMessage());
+            logger.warn("Unable to print line for commit" + commit.sha + ": " + e.getLocalizedMessage());
         }
     }
 }

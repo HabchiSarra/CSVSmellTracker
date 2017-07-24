@@ -11,7 +11,7 @@ public enum SmellCode {
      IWR(3),
      LIC(4),
      MIM(5),
-     NLM(6),
+     NLMR(6),
      UCS(7),
      UHA(8),
      UIO(9);
