@@ -17,6 +17,13 @@ import java.util.Set;
 
 public class SmellsProcessor implements DevelopersHandler {
     private static final Logger logger = LoggerFactory.getLogger(SmellsProcessor.class.getName());
+    /**
+     * Supplementary file describing commits without any smell.
+     *
+     * This file enables to make the refactored smells appear
+     * when every smells disappeared from the application code.
+     */
+    private static final String NO_SMELL_FILE = "NOSMELL";
     private final Map<String, Integer> developersCode = new HashMap<String, Integer>();
 
     private List<File> smellFiles;
@@ -33,14 +40,14 @@ public class SmellsProcessor implements DevelopersHandler {
 
     public void process() {
         SmellProcessor processor;
-        SmellCode smell;
+        String smell;
         List<CommitSmell> commits = new ArrayList<>();
         for (File smellFile : smellFiles) {
             smell = getSmellName(smellFile);
             // If we can't parse the file name we consider it as non-smell file
             if (smell != null) {
                 logger.info("Processing smell file: " + smellFile.getName());
-                processor = new SmellProcessor(smell.name(), smellFile, this);
+                processor = new SmellProcessor(smell, smellFile, this);
                 commits.addAll(processor.process());
             }
         }
@@ -56,7 +63,7 @@ public class SmellsProcessor implements DevelopersHandler {
      * @param smellFile
      * @return
      */
-    private SmellCode getSmellName(File smellFile) {
+    private String getSmellName(File smellFile) {
         String[] split = smellFile.getName().split("_");
         String smellName;
 
@@ -70,7 +77,11 @@ public class SmellsProcessor implements DevelopersHandler {
 
         // Parsing the smell name
         try {
-            return SmellCode.valueOf(smellName);
+            // We have a file containing analyzed commits without any smell
+            if (smellName.equals(NO_SMELL_FILE)) {
+                return NO_SMELL_FILE;
+            }
+            return SmellCode.valueOf(smellName).name();
         } catch (IllegalArgumentException e) {
             logger.warn("Unknown smell name: " + smellName);
             return null;

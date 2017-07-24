@@ -65,7 +65,9 @@ class SmellProcessor {
                     developersHandler.notify(smell.developer);
                     previousCommit = parsedCommit.commitNumber;
                 } else {
-                    currentSmells.add(smell.name);
+                    if (smell.hasSmell()) {
+                        currentSmells.add(smell.name);
+                    }
                 }
             }
 

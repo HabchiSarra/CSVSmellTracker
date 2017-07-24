@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 class InputSmell {
     private static final Logger logger = LoggerFactory.getLogger(InputSmell.class.getName());
     private static final String SEPARATOR = ",";
+    private static final String NO_SMELL_KW = "-";
 
     final String name;
     final int commitNumber;
@@ -27,7 +28,17 @@ class InputSmell {
         this.status = status;
     }
 
-    public static InputSmell fromLine(String line){
+    /**
+     * Tells if the current Input actually defines a smell
+     * or declares an absence of any smell.
+     *
+     * @return true if the commit has an actual smell, false otherwise.
+     */
+    public boolean hasSmell() {
+        return !name.equals(NO_SMELL_KW);
+    }
+
+    public static InputSmell fromLine(String line) {
         String[] content = line.split(SEPARATOR);
         if (content.length < 5) {
             logger.warn("Unable to parse smell input: " + line);
