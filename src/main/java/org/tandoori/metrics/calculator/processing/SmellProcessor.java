@@ -38,7 +38,7 @@ class SmellProcessor {
         logger.info("Processing smell type: " + smellName);
         try {
             br = new BufferedReader(new FileReader(inputCsvFile));
-            CommitSmell parsedCommit;
+            CommitSmell parsedCommit = null;
             InputSmell smell;
             if (logger.isTraceEnabled()) {
                 logger.trace("Wiping out header line: " + br.readLine());
@@ -50,16 +50,24 @@ class SmellProcessor {
                 smell = InputSmell.fromLine(line);
 
                 if (smell.commitNumber != previousCommit) {
+                    if (parsedCommit != null) {
+                        // Do not count output smells on first iteration
+                        logger.trace("Counting output smells for commit n°" + parsedCommit.commitNumber);
+                        parsedCommit.setSmells(compareCommits(previousSmells, currentSmells));
+                        commits.add(parsedCommit);
+                        previousSmells = currentSmells;
+                        currentSmells = new ArrayList<>();
+                    }
+
+                    logger.debug("Switching to commit n°" + smell.commitNumber);
                     developersHandler.notify(smell.developer);
                     parsedCommit = new CommitSmell(smellName, smell.commitNumber, smell.commitSha, smell.status, smell.developer);
 
                     currentSmells.add(smell.name);
-                    parsedCommit.setSmells(compareCommits(previousSmells, currentSmells));
-                    commits.add(parsedCommit);
 
-                    previousSmells = currentSmells;
-                    currentSmells = new ArrayList<>();
+
                     previousCommit = parsedCommit.commitNumber;
+
                 } else {
                     currentSmells.add(smell.name);
                 }
