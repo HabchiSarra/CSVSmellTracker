@@ -60,14 +60,10 @@ class SmellProcessor {
                     }
 
                     logger.debug("Switching to commit n°" + smell.commitNumber);
-                    developersHandler.notify(smell.developer);
                     parsedCommit = new CommitSmell(smellName, smell.commitNumber, smell.commitSha, smell.status, smell.developer);
-
                     currentSmells.add(smell.name);
-
-
+                    developersHandler.notify(smell.developer);
                     previousCommit = parsedCommit.commitNumber;
-
                 } else {
                     currentSmells.add(smell.name);
                 }

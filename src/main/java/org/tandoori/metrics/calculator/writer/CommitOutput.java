@@ -36,9 +36,10 @@ class CommitOutput {
 
     public void setSmellCount(String name, int introduced, int refactored) {
         try {
+            logger.trace("Setting values for smell (" + name + "): I-" + introduced + "/R-" + refactored);
             int offset = SmellCode.valueOf(name).offset;
             introducedSmells[offset] = introduced;
-            introducedSmells[offset] = refactored;
+            refactoredSmells[offset] = refactored;
         } catch (IllegalArgumentException e) {
             logger.warn("Could not parse smell name: " + name);
         }

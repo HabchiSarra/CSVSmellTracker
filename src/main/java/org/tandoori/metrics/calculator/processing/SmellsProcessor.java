@@ -5,24 +5,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.DevelopersHandler;
 import org.tandoori.metrics.calculator.SmellCode;
-import org.tandoori.metrics.calculator.writer.SmellSummaryWriter;
+import org.tandoori.metrics.calculator.writer.SmellWriter;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SmellsProcessor implements DevelopersHandler {
     private static final Logger logger = LoggerFactory.getLogger(SmellsProcessor.class.getName());
     private final Map<String, Integer> developersCode = new HashMap<String, Integer>();
 
     private List<File> smellFiles;
-    private final File outputCsvFile;
+    private final Set<SmellWriter> outputs;
 
-    public SmellsProcessor(List<File> smellFiles, File outputCsvFile) {
+    public SmellsProcessor(List<File> smellFiles) {
         this.smellFiles = smellFiles;
-        this.outputCsvFile = outputCsvFile;
+        outputs = new HashSet<>();
+    }
+
+    public void addOutput(SmellWriter output) {
+        outputs.add(output);
     }
 
     public void process() {
@@ -38,7 +44,10 @@ public class SmellsProcessor implements DevelopersHandler {
                 commits.addAll(processor.process());
             }
         }
-        new SmellSummaryWriter(outputCsvFile, this).write(commits);
+
+        for (SmellWriter output : outputs) {
+            output.write(commits);
+        }
     }
 
     /**
@@ -70,6 +79,7 @@ public class SmellsProcessor implements DevelopersHandler {
 
     public void notify(String developer) {
         if (!developersCode.containsKey(developer)) {
+            logger.trace("New developer notified: " + developer);
             developersCode.put(developer, developersCode.size() + 1);
         }
     }
