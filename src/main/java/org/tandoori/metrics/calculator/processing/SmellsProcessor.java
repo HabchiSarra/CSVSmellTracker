@@ -23,7 +23,7 @@ public class SmellsProcessor implements DevelopersHandler {
      * This file enables to make the refactored smells appear
      * when every smells disappeared from the application code.
      */
-    private static final String NO_SMELL_FILE = "NOSMELL";
+    public static final String NO_SMELL_CODE = "NOSMELL";
     private final Map<String, Integer> developersCode = new HashMap<String, Integer>();
 
     private List<File> smellFiles;
@@ -78,8 +78,8 @@ public class SmellsProcessor implements DevelopersHandler {
         // Parsing the smell name
         try {
             // We have a file containing analyzed commits without any smell
-            if (smellName.equals(NO_SMELL_FILE)) {
-                return NO_SMELL_FILE;
+            if (smellName.equals(NO_SMELL_CODE)) {
+                return NO_SMELL_CODE;
             }
             return SmellCode.valueOf(smellName).name();
         } catch (IllegalArgumentException e) {

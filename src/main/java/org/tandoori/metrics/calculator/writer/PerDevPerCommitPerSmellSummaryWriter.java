@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.tandoori.metrics.calculator.processing.SmellsProcessor.NO_SMELL_CODE;
+
 /**
  * Count the smells introduced and refactored per per developer and per commit
  */
@@ -42,7 +44,9 @@ public class PerDevPerCommitPerSmellSummaryWriter extends CommonSmellSummaryWrit
                 currentOutput = new CommitOutput(commit.commitNumber, commit.sha, commit.developer, commit.status);
             }
             // Add the stats of the current smell to the right commit.
-            currentOutput.setSmellCount(commit.smellName, commit.introduced(), commit.refactored());
+            if (!commit.smellName.equals(NO_SMELL_CODE)) {
+                currentOutput.setSmellCount(commit.smellName, commit.introduced(), commit.refactored());
+            }
         }
     }
 

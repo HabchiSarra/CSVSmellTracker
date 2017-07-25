@@ -11,6 +11,8 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.tandoori.metrics.calculator.processing.SmellsProcessor.NO_SMELL_CODE;
+
 /**
  * Count the overall smells introduction and refactoring per developer
  */
@@ -31,14 +33,20 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
 
     @Override
     protected void writeValues(List<CommitSmell> commits, FileWriter fileWriter) {
-        int firstCommitNb = commits.get(0).commitNumber;
-        for (CommitSmell commit : commits) {
+        int firstCommitNb = 0;
+        if (!commits.isEmpty()) {
+            firstCommitNb = commits.get(0).commitNumber;
+        } else {
+            logger.warn("No commits provided, output file will be empty");
+        }        for (CommitSmell commit : commits) {
             // We won't count the smells introduced in the first commit
             // since it will contain every smells in the code so far.
             if (commit.commitNumber == firstCommitNb) {
                 continue;
             }
-            devIntroducedRefactored.addSmells(commit.developer, commit.introduced(), commit.refactored());
+            if (!commit.smellName.equals(NO_SMELL_CODE)) {
+                devIntroducedRefactored.addSmells(commit.developer, commit.introduced(), commit.refactored());
+            }
         }
         writeCommitLine(fileWriter);
     }

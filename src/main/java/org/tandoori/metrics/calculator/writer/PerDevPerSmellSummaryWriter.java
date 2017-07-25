@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.tandoori.metrics.calculator.processing.SmellsProcessor.NO_SMELL_CODE;
+
 /**
  * Count the smells introduced and refactored per smell type per developer
  */
@@ -38,15 +40,22 @@ public class PerDevPerSmellSummaryWriter extends CommonSmellSummaryWriter implem
 
     @Override
     protected void writeValues(List<CommitSmell> commits, FileWriter fileWriter) {
-        int firstCommitNb = commits.get(0).commitNumber;
+        int firstCommitNb = 0;
+        if (!commits.isEmpty()) {
+            firstCommitNb = commits.get(0).commitNumber;
+        } else {
+            logger.warn("No commits provided, output file will be empty");
+        }
         for (CommitSmell commit : commits) {
             // We won't count the smells introduced in the first commit
             // since it will contain every smells in the code so far.
-            if (commit.commitNumber == firstCommitNb){
+            if (commit.commitNumber == firstCommitNb) {
                 continue;
             }
-            SmellStore store = smellIntroducedRefactored.get(commit.smellName);
-            store.addSmells(commit.developer, commit.introduced(), commit.refactored());
+            if (!commit.smellName.equals(NO_SMELL_CODE)) {
+                SmellStore store = smellIntroducedRefactored.get(commit.smellName);
+                store.addSmells(commit.developer, commit.introduced(), commit.refactored());
+            }
         }
         writeCommitLine(fileWriter);
     }
@@ -68,7 +77,7 @@ public class PerDevPerSmellSummaryWriter extends CommonSmellSummaryWriter implem
 
         Tuple<Integer, Integer> smells;
         SmellStore store;
-        for (SmellCode smell: SmellCode.values()) {
+        for (SmellCode smell : SmellCode.values()) {
             line = new ArrayList<>();
             line.add(smell.name());
 
