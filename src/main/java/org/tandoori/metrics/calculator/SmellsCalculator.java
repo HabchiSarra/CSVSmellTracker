@@ -33,6 +33,9 @@ public class SmellsCalculator {
     @Option(name = "-o", required = true, usage = "Set the output dir")
     public File outputDir;
 
+    @Option(name = "-c", required = true, usage = "Set the project commits file")
+    public File commitFile;
+
     public void generateReport() {
         List<File> smellsFile = getFiles();
         SmellsProcessor smellsProcessor = new SmellsProcessor(smellsFile);
@@ -51,7 +54,7 @@ public class SmellsCalculator {
         smellsProcessor.addOutput(new PerDevPerSmellSummaryWriter(outputFile, smellsProcessor));
 
         outputFile = new File(outputDir, "metrics-perDev.csv");
-        smellsProcessor.addOutput(new PerDevSummaryWriter(outputFile, smellsProcessor));
+        smellsProcessor.addOutput(new PerDevSummaryWriter(outputFile, smellsProcessor, commitFile));
 
         smellsProcessor.process();
     }

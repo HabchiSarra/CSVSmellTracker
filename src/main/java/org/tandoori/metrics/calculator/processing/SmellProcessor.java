@@ -21,13 +21,13 @@ class SmellProcessor {
     private final File inputCsvFile;
     private final DevelopersHandler developersHandler;
 
-    public SmellProcessor(String smellName, File inputCsvFile, DevelopersHandler developersHandler) {
+    SmellProcessor(String smellName, File inputCsvFile, DevelopersHandler developersHandler) {
         this.smellName = smellName;
         this.inputCsvFile = inputCsvFile;
         this.developersHandler = developersHandler;
     }
 
-    public List<CommitSmell> process() {
+    List<CommitSmell> process() {
         BufferedReader br = null;
         String line;
         List<CommitSmell> commits = new ArrayList<>();
@@ -69,6 +69,12 @@ class SmellProcessor {
                         currentSmells.add(smell.name);
                     }
                 }
+            }
+
+            // Add the last commit if any
+            if (parsedCommit != null) {
+                parsedCommit.setSmells(compareCommits(previousSmells, currentSmells));
+                commits.add(parsedCommit);
             }
 
         } catch (IOException e) {
