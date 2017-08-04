@@ -1,0 +1,4 @@
+dev_id,name,email,I,R,ratio_I,ratio_R,commits_analyzed,ratio_Ca,ratio_I_Ca,ratio_R_Ca,nb_commits_project,ratio_Cp,ratio_I_Cp,ratio_R_Cp
+89638,pocmo,pocmo@crewyoo.com,46,111,1.0,1.0,112,0.98245615,1.0178572,1.0178572,956,0.89934146,1.1119248,1.1119248
+363760,moparisthebest,admin@moparisthebest.com,0,0,0.0,0.0,1,0.00877193,0.0,0.0,1,9.4073376E-4,0.0,0.0
+1634220,attilamolnar,attilamolnar@hush.com,0,0,0.0,0.0,1,0.00877193,0.0,0.0,1,9.4073376E-4,0.0,0.0
