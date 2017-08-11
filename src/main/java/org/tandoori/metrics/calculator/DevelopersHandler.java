@@ -4,7 +4,60 @@ package org.tandoori.metrics.calculator;
  * Created by sarra on 18/07/17.
  */
 public interface DevelopersHandler {
+    /**
+     * Add the developer ID to developer set.
+     *
+     * @param developer The developer to notify
+     */
     void notify(String developer);
+
+    /**
+     * Add the smell definitions to smells introduced by the developer.
+     *
+     * @param developer The developer ID.
+     * @param smellId   The smell ID.
+     */
+    void notifyIntroduced(String developer, String smellId);
+
+    /**
+     * Add the smell definitions to smells refactored by the developer.
+     *
+     * @param developer The developer ID.
+     * @param smellId   The smell ID.
+     */
+    void notifyRefactored(String developer, String smellId);
+
+    /**
+     * Count the total number of introduced smells by the developer.
+     *
+     * @param developer The developer ID.
+     * @return The count of introduced smells.
+     */
+    long countIntroduced(String developer);
+
+    /**
+     * Count the total number of refactored smells by the developer.
+     *
+     * @param developer The developer ID.
+     * @return The count of refactored smells.
+     */
+    long countRefactored(String developer);
+
+    /**
+     * Count the total number of refactored smells introduced by the same developer.
+     *
+     * @param developer The developer ID.
+     * @return The count of refactored smells.
+     */
+    long countSelfRefactored(String developer);
+
+    /**
+     * Count the total number of refactored smells introduced by other developers.
+     *
+     * @param developer The developer ID.
+     * @return The count of refactored smells.
+     */
+    long countOtherRefactored(String developer);
 
     /**
      * Returns the number of synchronized developers.

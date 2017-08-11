@@ -53,7 +53,7 @@ class SmellProcessor {
                     if (parsedCommit != null) {
                         // Do not count output smells on first iteration
                         logger.trace("Counting output smells for commit n°" + parsedCommit.commitNumber);
-                        parsedCommit.setSmells(compareCommits(previousSmells, currentSmells));
+                        parsedCommit.setSmells(compareCommits(parsedCommit.developer, previousSmells, currentSmells));
                         commits.add(parsedCommit);
                         previousSmells = currentSmells;
                         currentSmells = new ArrayList<>();
@@ -73,7 +73,7 @@ class SmellProcessor {
 
             // Add the last commit if any
             if (parsedCommit != null) {
-                parsedCommit.setSmells(compareCommits(previousSmells, currentSmells));
+                parsedCommit.setSmells(compareCommits(parsedCommit.developer, previousSmells, currentSmells));
                 commits.add(parsedCommit);
             }
 
@@ -91,13 +91,33 @@ class SmellProcessor {
         return commits;
     }
 
-    private Tuple<Integer, Integer> compareCommits(List<String> previousInstances, List<String> currentInstances) {
+    private Tuple<Integer, Integer> compareCommits(String developer, List<String> previousInstances, List<String> currentInstances) {
         List<String> intersect = new ArrayList<>(currentInstances);
         intersect.retainAll(previousInstances);
+
+        notifyIntroducedSmells(developer, currentInstances, intersect);
+
+        notifyRefactoredSmells(developer, previousInstances, intersect);
 
         int countIntroduced = currentInstances.size() - intersect.size();
         int countRefactored = previousInstances.size() - intersect.size();
         logger.debug("Found " + countIntroduced + " smells introduced and " + countRefactored + " smells refactored");
         return new Tuple<>(countIntroduced, countRefactored);
+    }
+
+    private void notifyIntroducedSmells(String developer, List<String> currentInstances, List<String> intersect) {
+        List<String> introduced = new ArrayList<>(currentInstances);
+        introduced.removeAll(intersect);
+        for (String smell : introduced) {
+            developersHandler.notifyIntroduced(developer, smell);
+        }
+    }
+
+    private void notifyRefactoredSmells(String developer, List<String> previousInstances, List<String> intersect) {
+        List<String> refactored = new ArrayList<>(previousInstances);
+        refactored.removeAll(intersect);
+        for (String smell : refactored) {
+            developersHandler.notifyRefactored(developer, smell);
+        }
     }
 }

@@ -3,6 +3,7 @@ package org.tandoori.metrics.calculator.processing;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.tandoori.metrics.calculator.DevelopersHandlerImpl;
 import org.tandoori.metrics.calculator.writer.SmellWriter;
 
 import java.io.File;
@@ -59,7 +60,7 @@ public class SmellsProcessorTest {
     private SmellsProcessor genProcessor(String projectName) {
         URL smellDir = getClass().getResource("/smellParsing/" + projectName + "/smells/");
         List<File> entries = Arrays.asList(new File(smellDir.getFile()).listFiles());
-        return new SmellsProcessor(entries);
+        return new SmellsProcessor(entries, new DevelopersHandlerImpl());
     }
 
     private int countAnalyzed(List<CommitSmell> smells) {

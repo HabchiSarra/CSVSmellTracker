@@ -23,7 +23,7 @@ import static org.tandoori.metrics.calculator.processing.SmellsProcessor.NO_SMEL
  * Count the overall smells introduction and refactoring per developer
  * The output will be of the form
  *
- * project, dev_id, name, email, I, R, ratio_I, ratio_R,
+ * project, dev_id, name, email, I, R, self_smells_R, other_dev_smells_R ratio_I, ratio_R,
  * nb_commits_analyzed, ratio_Ca, ratio_I_Ca, ratio_R_Ca,
  * nb_commits_project, ratio_Cp, ratio_I_Cp, ratio_R_Cp
  *
@@ -39,6 +39,8 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
     private static final String DEV_ID = "dev_id";
     private static final String DEV_NAME = "name";
     private static final String DEV_EMAIL = "email";
+    private static final String REFACTORED_SELF = "self_smells_R";
+    private static final String REFACTORED_OTHER = "other_dev_smells_R";
     private static final String RATIO_I = "ratio_I";
     private static final String RATIO_R = "ratio_R";
     private static final String ANALYZED_COMMITS = "commits_analyzed";
@@ -150,6 +152,8 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
 
         header.add(INTRODUCED_KEY);
         header.add(REFACTORED_KEY);
+        header.add(REFACTORED_SELF);
+        header.add(REFACTORED_OTHER);
         header.add(RATIO_I);
         header.add(RATIO_R);
 
@@ -175,6 +179,9 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
 
         line.add(String.valueOf(smells.introduced));
         line.add(String.valueOf(smells.refactored));
+        line.add(String.valueOf(devHandler.countSelfRefactored(dev.id)));
+        line.add(String.valueOf(devHandler.countOtherRefactored(dev.id)));
+
         float ratioI = smells.introduced / (float) totalI;
         line.add(String.valueOf(ratioI));
         float ratioR = smells.refactored / (float) totalR;
