@@ -23,7 +23,7 @@ import static org.tandoori.metrics.calculator.processing.SmellsProcessor.NO_SMEL
  * Count the overall smells introduction and refactoring per developer
  * The output will be of the form
  *
- * dev_id, name, email, I, R, ratio_I, ratio_R,
+ * project, dev_id, name, email, I, R, ratio_I, ratio_R,
  * nb_commits_analyzed, ratio_Ca, ratio_I_Ca, ratio_R_Ca,
  * nb_commits_project, ratio_Cp, ratio_I_Cp, ratio_R_Cp
  *
@@ -35,6 +35,7 @@ import static org.tandoori.metrics.calculator.processing.SmellsProcessor.NO_SMEL
  */
 public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements SmellWriter {
     private static final Logger logger = LoggerFactory.getLogger(PerDevSummaryWriter.class.getName());
+    private static final String PROJECT_NAME = "project";
     private static final String DEV_ID = "dev_id";
     private static final String DEV_NAME = "name";
     private static final String DEV_EMAIL = "email";
@@ -48,6 +49,16 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
     private static final String RATIO_PROJECT_COMMITS = "ratio_Cp";
     private static final String RATIO_I_CP = "ratio_I_Cp";
     private static final String RATIO_R_CP = "ratio_R_Cp";
+
+    /**
+     * Project identifier to write if nothing is set.
+     */
+    private static final String DEFAULt_PROJECT_NAME = "unknown_project";
+
+    /**
+     * Project identifier to set on the output.
+     */
+    private final String projectName;
 
     /**
      * {@link SmellStore} sorted by developer.
@@ -65,11 +76,13 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
      * @param outputFile     The file in which the results should be put.
      * @param devHandler     Handler containing the data of analyzed devs
      * @param projectCommits File containing the output of GitMiner.
+     * @param projectName    Name of the project.
      */
-    public PerDevSummaryWriter(File outputFile, DevelopersHandler devHandler, File projectCommits) {
+    public PerDevSummaryWriter(File outputFile, DevelopersHandler devHandler, File projectCommits, String projectName) {
         super(outputFile, devHandler);
         this.projectCommits = projectCommits;
         devIntroducedRefactored = new SmellStore();
+        this.projectName = projectName != null ? projectName : DEFAULt_PROJECT_NAME;
     }
 
     @Override
@@ -130,6 +143,7 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
     @Override
     protected List<String> getHeaderLine() {
         List<String> header = new ArrayList<>();
+        header.add(PROJECT_NAME);
         header.add(DEV_ID);
         header.add(DEV_NAME);
         header.add(DEV_EMAIL);
@@ -154,6 +168,7 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
     private List<String> getContentLine(Project project, Developer dev, Tuple<Integer, Integer> smells,
                                         int totalI, int totalR) {
         List<String> line = new ArrayList<>();
+        line.add(projectName);
         line.add(dev.id);
         line.add(dev.name);
         line.add(dev.email);
