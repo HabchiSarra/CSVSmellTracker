@@ -3,6 +3,7 @@ package org.tandoori.metrics.calculator.writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.DevelopersHandler;
+import org.tandoori.metrics.calculator.SmellCode;
 import org.tandoori.metrics.calculator.devparser.DevParser;
 import org.tandoori.metrics.calculator.devparser.Developer;
 import org.tandoori.metrics.calculator.devparser.Project;
@@ -25,13 +26,15 @@ import static org.tandoori.metrics.calculator.processing.SmellsProcessor.NO_SMEL
  *
  * project, dev_id, name, email, I, R, self_smells_R, other_dev_smells_R ratio_I, ratio_R,
  * nb_commits_analyzed, ratio_Ca, ratio_I_Ca, ratio_R_Ca,
- * nb_commits_project, ratio_Cp, ratio_I_Cp, ratio_R_Cp
+ * nb_commits_project, ratio_Cp, ratio_I_Cp, ratio_R_Cp,
+ * S1_I, S1_R, ..., Sn_I, Sn_R
  *
  * Where:
  * I = Introduced smell
  * R = Refactored smell
  * Ca = analyzed commits
  * Cp = commits in projects
+ * Sn = Smell n
  */
 public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements SmellWriter {
     private static final Logger logger = LoggerFactory.getLogger(PerDevSummaryWriter.class.getName());
@@ -110,6 +113,9 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
                 totalI += commit.introduced();
                 totalR += commit.refactored();
                 devIntroducedRefactored.addSmells(commit.developer, commit.introduced(), commit.refactored());
+
+                Developer developer = devParser.getDevelopers().get(commit.developer);
+                developer.updateSmell(commit.smellName, commit.introduced(), commit.refactored());
             }
         }
 
@@ -166,6 +172,12 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
         header.add(RATIO_PROJECT_COMMITS);
         header.add(RATIO_I_CP);
         header.add(RATIO_R_CP);
+
+        for (SmellCode smellCode : SmellCode.values()) {
+            header.add(smellCode.name() + "_" + INTRODUCED_KEY);
+            header.add(smellCode.name() + "_" + REFACTORED_KEY);
+        }
+
         return header;
     }
 
@@ -190,6 +202,14 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
         addCommitsRatio(line, dev.getAnalyzedCommits(), project.getAnalyzedCommits(), ratioI, ratioR);
 
         addCommitsRatio(line, dev.getTotalCommits(), project.getTotalCommits(), ratioI, ratioR);
+
+        // Ensure that the iteration is in the same order as in Header line
+        Tuple<Integer, Integer> count;
+        for (SmellCode smellCode : SmellCode.values()) {
+            count = dev.getSmellCounts(smellCode.name());
+            line.add(String.valueOf(count.introduced));
+            line.add(String.valueOf(count.refactored));
+        }
 
         return line;
     }
