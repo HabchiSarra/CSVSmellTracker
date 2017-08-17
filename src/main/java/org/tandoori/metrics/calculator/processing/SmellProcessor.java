@@ -9,7 +9,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by sarra on 18/07/17.
@@ -19,64 +23,88 @@ class SmellProcessor {
 
     private final String smellName;
     private final File inputCsvFile;
+    private List<String> orderedCommits;
     private final DevelopersHandler developersHandler;
 
-    SmellProcessor(String smellName, File inputCsvFile, DevelopersHandler developersHandler) {
+    SmellProcessor(String smellName, File inputCsvFile, List<String> orderedCommits, DevelopersHandler developersHandler) {
         this.smellName = smellName;
         this.inputCsvFile = inputCsvFile;
+        this.orderedCommits = orderedCommits;
         this.developersHandler = developersHandler;
     }
 
     List<CommitSmell> process() {
-        BufferedReader br = null;
-        String line;
+        logger.info("Processing smell type: " + smellName);
+
+        Map<String, Collection<InputSmell>> smellMap = mapCommitsToSmells();
+        return orderedProcess(smellMap);
+    }
+
+    private List<CommitSmell> orderedProcess(Map<String, Collection<InputSmell>> smellMap) {
         List<CommitSmell> commits = new ArrayList<>();
         int previousCommit = -1;
         List<String> previousSmells = new ArrayList<>();
         List<String> currentSmells = new ArrayList<>();
+        CommitSmell parsedCommit = null;
+        Collection<InputSmell> smells;
+        for (String commit : orderedCommits) {
+            logger.debug("Handling commit: " + commit);
+            // Smell may be null if no smell has been found on this commit
+            if (smellMap.containsKey(commit)) {
+                smells = smellMap.get(commit);
+                for (InputSmell smell : smells) {
 
-        logger.info("Processing smell type: " + smellName);
+                    if (smell.commitNumber != previousCommit) {
+                        if (parsedCommit != null) {
+                            // Do not count output smells on first iteration
+                            logger.trace("Counting output smells for commit n°" + parsedCommit.commitNumber);
+                            parsedCommit.setSmells(compareCommits(parsedCommit.developer, previousSmells, currentSmells));
+                            commits.add(parsedCommit);
+                            previousSmells = currentSmells;
+                            currentSmells = new ArrayList<>();
+                        }
+
+                        logger.debug("Switching to commit n°" + smell.commitNumber);
+                        parsedCommit = new CommitSmell(smellName, smell.commitNumber, smell.commitSha, smell.status, smell.developer);
+                        currentSmells.add(smell.name);
+                        developersHandler.notify(smell.developer);
+                        previousCommit = parsedCommit.commitNumber;
+                    } else {
+                        if (smell.hasSmell()) {
+                            currentSmells.add(smell.name);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add the last commit if any
+        if (parsedCommit != null) {
+            parsedCommit.setSmells(compareCommits(parsedCommit.developer, previousSmells, currentSmells));
+            commits.add(parsedCommit);
+        }
+        return commits;
+    }
+
+    private Map<String, Collection<InputSmell>> mapCommitsToSmells() {
+        Map<String, Collection<InputSmell>> smellMap = new HashMap<>();
+        BufferedReader br = null;
+        String line;
         try {
             br = new BufferedReader(new FileReader(inputCsvFile));
-            CommitSmell parsedCommit = null;
-            InputSmell smell;
             if (logger.isTraceEnabled()) {
                 logger.trace("Wiping out header line: " + br.readLine());
             } else {
                 br.readLine();
             }
+            InputSmell smell;
             while ((line = br.readLine()) != null) {
                 logger.trace("Parsing line: " + line);
                 smell = InputSmell.fromLine(line);
-
-                if (smell.commitNumber != previousCommit) {
-                    if (parsedCommit != null) {
-                        // Do not count output smells on first iteration
-                        logger.trace("Counting output smells for commit n°" + parsedCommit.commitNumber);
-                        parsedCommit.setSmells(compareCommits(parsedCommit.developer, previousSmells, currentSmells));
-                        commits.add(parsedCommit);
-                        previousSmells = currentSmells;
-                        currentSmells = new ArrayList<>();
-                    }
-
-                    logger.debug("Switching to commit n°" + smell.commitNumber);
-                    parsedCommit = new CommitSmell(smellName, smell.commitNumber, smell.commitSha, smell.status, smell.developer);
-                    currentSmells.add(smell.name);
-                    developersHandler.notify(smell.developer);
-                    previousCommit = parsedCommit.commitNumber;
-                } else {
-                    if (smell.hasSmell()) {
-                        currentSmells.add(smell.name);
-                    }
-                }
+                Collection<InputSmell> smells = smellMap.getOrDefault(smell.commitSha, new HashSet<>());
+                smells.add(smell);
+                smellMap.put(smell.commitSha, smells);
             }
-
-            // Add the last commit if any
-            if (parsedCommit != null) {
-                parsedCommit.setSmells(compareCommits(parsedCommit.developer, previousSmells, currentSmells));
-                commits.add(parsedCommit);
-            }
-
         } catch (IOException e) {
             logger.error("Unable to read file: " + inputCsvFile);
         } finally {
@@ -88,7 +116,7 @@ class SmellProcessor {
                 }
             }
         }
-        return commits;
+        return smellMap;
     }
 
     private Tuple<Integer, Integer> compareCommits(String developer, List<String> previousInstances, List<String> currentInstances) {

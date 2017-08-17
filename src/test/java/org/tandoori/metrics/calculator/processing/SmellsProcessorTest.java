@@ -6,8 +6,12 @@ import org.mockito.ArgumentCaptor;
 import org.tandoori.metrics.calculator.DevelopersHandlerImpl;
 import org.tandoori.metrics.calculator.writer.SmellWriter;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +48,7 @@ public class SmellsProcessorTest {
         checkProject("sigfood", 7, 0);
     }
 
-    private void checkProject(String name, int analyzedCommits, int noDepsCommits) {
+    private void checkProject(String name, int analyzedCommits, int noDepsCommits) throws IOException {
         SmellsProcessor processor = genProcessor(name);
         processor.addOutput(smellsWriter);
 
@@ -57,10 +61,29 @@ public class SmellsProcessorTest {
         assertThat("We have enough nodeps commits", countNoDeps(smells), is(noDepsCommits));
     }
 
-    private SmellsProcessor genProcessor(String projectName) {
+    private SmellsProcessor genProcessor(String projectName) throws IOException {
         URL smellDir = getClass().getResource("/smellParsing/" + projectName + "/smells/");
         List<File> entries = Arrays.asList(new File(smellDir.getFile()).listFiles());
-        return new SmellsProcessor(entries, new DevelopersHandlerImpl());
+        return new SmellsProcessor(entries, new DevelopersHandlerImpl(), getCommitInOrder(projectName));
+    }
+
+    private List<String> getCommitInOrder(String projectName) throws IOException {
+        URL logs = getClass().getResource("/smellParsing/" + projectName + "/logFile");
+        BufferedReader br = null;
+        String line;
+        List<String> commits = new ArrayList<>();
+
+        try {
+            br = new BufferedReader(new FileReader(logs.getFile()));
+            while ((line = br.readLine()) != null) {
+                commits.add(line);
+            }
+        } finally {
+            if (br != null) {
+                br.close();
+            }
+        }
+        return commits;
     }
 
     private int countAnalyzed(List<CommitSmell> smells) {
