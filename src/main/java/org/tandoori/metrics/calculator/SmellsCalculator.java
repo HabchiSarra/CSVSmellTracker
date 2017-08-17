@@ -9,8 +9,11 @@ import org.tandoori.metrics.calculator.writer.PerDevPerCommitPerSmellSummaryWrit
 import org.tandoori.metrics.calculator.writer.PerDevPerSmellSummaryWriter;
 import org.tandoori.metrics.calculator.writer.PerDevSummaryWriter;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,17 +36,19 @@ public class SmellsCalculator {
     @Option(name = "-o", required = true, usage = "Set the output dir")
     public File outputDir;
 
-    @Option(name = "-c", required = true, usage = "Set the project commits file")
+    @Option(name = "-c", required = true, usage = "Set the project commits file with developers")
     public File commitFile;
 
     @Option(name = "-p", usage = "Set the project name")
     public String projectName;
 
+    @Option(name = "-l", required = true, usage = "Project commits in topological order")
+    public File logs;
 
     public void generateReport() {
         List<File> smellsFile = getFiles();
         DevelopersHandler devHandler = new DevelopersHandlerImpl();
-        SmellsProcessor smellsProcessor = new SmellsProcessor(smellsFile, devHandler);
+        SmellsProcessor smellsProcessor = new SmellsProcessor(smellsFile, devHandler, getCommitInOrder());
         if (outputDir.isFile()) {
             logger.error("Output should be a directory, got a file instead: " + outputDir.getAbsolutePath());
             return;
@@ -87,5 +92,29 @@ public class SmellsCalculator {
         public boolean accept(File file, String s) {
             return s.toLowerCase().endsWith(".csv");
         }
+    }
+
+    private List<String> getCommitInOrder() {
+        BufferedReader br = null;
+        String line;
+        List<String> commits = new ArrayList<>();
+
+        try {
+            br = new BufferedReader(new FileReader(logs));
+            while ((line = br.readLine()) != null) {
+                commits.add(line);
+            }
+        } catch (IOException e) {
+            logger.error("Unable to read file: " + logs.getAbsolutePath());
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    logger.error("Unable to close reader for file: " + logs.getAbsolutePath());
+                }
+            }
+        }
+        return commits;
     }
 }

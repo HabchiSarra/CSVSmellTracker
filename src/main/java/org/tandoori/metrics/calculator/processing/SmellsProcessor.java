@@ -25,11 +25,13 @@ public class SmellsProcessor {
 
     private List<File> smellFiles;
     private final DevelopersHandler devHandler;
+    private List<String> orderedCommits;
     private final Set<SmellWriter> outputs;
 
-    public SmellsProcessor(List<File> smellFiles, DevelopersHandler devHandler) {
+    public SmellsProcessor(List<File> smellFiles, DevelopersHandler devHandler, List<String> orderedCommits) {
         this.smellFiles = smellFiles;
         this.devHandler = devHandler;
+        this.orderedCommits = orderedCommits;
         outputs = new HashSet<>();
     }
 
@@ -46,7 +48,7 @@ public class SmellsProcessor {
             // If we can't parse the file name we consider it as non-smell file
             if (smell != null) {
                 logger.info("Processing smell file: " + smellFile.getName());
-                processor = new SmellProcessor(smell, smellFile, devHandler);
+                processor = new SmellProcessor(smell, smellFile, orderedCommits, devHandler);
                 commits.addAll(processor.process());
             }
         }
