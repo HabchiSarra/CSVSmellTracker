@@ -9,13 +9,11 @@ import org.tandoori.metrics.calculator.writer.SmellWriter;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-public class SmellsProcessor implements DevelopersHandler {
+public class SmellsProcessor {
     private static final Logger logger = LoggerFactory.getLogger(SmellsProcessor.class.getName());
     /**
      * Supplementary file describing commits without any smell.
@@ -24,13 +22,14 @@ public class SmellsProcessor implements DevelopersHandler {
      * when every smells disappeared from the application code.
      */
     public static final String NO_SMELL_CODE = "NOSMELL";
-    private final Map<String, Integer> developersCode = new HashMap<String, Integer>();
 
     private List<File> smellFiles;
+    private final DevelopersHandler devHandler;
     private final Set<SmellWriter> outputs;
 
-    public SmellsProcessor(List<File> smellFiles) {
+    public SmellsProcessor(List<File> smellFiles, DevelopersHandler devHandler) {
         this.smellFiles = smellFiles;
+        this.devHandler = devHandler;
         outputs = new HashSet<>();
     }
 
@@ -47,7 +46,7 @@ public class SmellsProcessor implements DevelopersHandler {
             // If we can't parse the file name we consider it as non-smell file
             if (smell != null) {
                 logger.info("Processing smell file: " + smellFile.getName());
-                processor = new SmellProcessor(smell, smellFile, this);
+                processor = new SmellProcessor(smell, smellFile, devHandler);
                 commits.addAll(processor.process());
             }
         }
@@ -86,31 +85,5 @@ public class SmellsProcessor implements DevelopersHandler {
             logger.warn("Unknown smell name: " + smellName);
             return null;
         }
-    }
-
-    public void notify(String developer) {
-        if (!developersCode.containsKey(developer)) {
-            logger.trace("New developer notified: " + developer);
-            developersCode.put(developer, developersCode.size() + 1);
-        }
-    }
-
-    @Override
-    public int size() {
-        return developersCode.size();
-    }
-
-    @Override
-    public int getOffset(String devName) {
-        return developersCode.get(devName);
-    }
-
-    @Override
-    public String[] sortedDevelopers() {
-        String[] sorted = new String[developersCode.size()];
-        for (String devId : developersCode.keySet()) {
-            sorted[developersCode.get(devId) - 1] = devId;
-        }
-        return sorted;
     }
 }

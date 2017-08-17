@@ -33,9 +33,17 @@ public class SmellsCalculator {
     @Option(name = "-o", required = true, usage = "Set the output dir")
     public File outputDir;
 
+    @Option(name = "-c", required = true, usage = "Set the project commits file")
+    public File commitFile;
+
+    @Option(name = "-p", usage = "Set the project name")
+    public String projectName;
+
+
     public void generateReport() {
         List<File> smellsFile = getFiles();
-        SmellsProcessor smellsProcessor = new SmellsProcessor(smellsFile);
+        DevelopersHandler devHandler = new DevelopersHandlerImpl();
+        SmellsProcessor smellsProcessor = new SmellsProcessor(smellsFile, devHandler);
         if (outputDir.isFile()) {
             logger.error("Output should be a directory, got a file instead: " + outputDir.getAbsolutePath());
             return;
@@ -45,13 +53,13 @@ public class SmellsCalculator {
             logger.warn("Unable to create directory: " + outputDir.getAbsolutePath());
         }
         File outputFile = new File(outputDir, "metrics-perDev-perCommit-perSmell.csv");
-        smellsProcessor.addOutput(new PerDevPerCommitPerSmellSummaryWriter(outputFile, smellsProcessor));
+        smellsProcessor.addOutput(new PerDevPerCommitPerSmellSummaryWriter(outputFile, devHandler));
 
         outputFile = new File(outputDir, "metrics-perDev-perSmell.csv");
-        smellsProcessor.addOutput(new PerDevPerSmellSummaryWriter(outputFile, smellsProcessor));
+        smellsProcessor.addOutput(new PerDevPerSmellSummaryWriter(outputFile, devHandler));
 
         outputFile = new File(outputDir, "metrics-perDev.csv");
-        smellsProcessor.addOutput(new PerDevSummaryWriter(outputFile, smellsProcessor));
+        smellsProcessor.addOutput(new PerDevSummaryWriter(outputFile, devHandler, commitFile, projectName));
 
         smellsProcessor.process();
     }
