@@ -15,6 +15,7 @@ public class CommitSmell implements Comparable<CommitSmell> {
 
     private int introducedSmells;
     private int refactoredSmells;
+    private int deletedSmells;
 
     public int introduced() {
         return introducedSmells;
@@ -22,6 +23,10 @@ public class CommitSmell implements Comparable<CommitSmell> {
 
     public int refactored() {
         return refactoredSmells;
+    }
+
+    public int deleted() {
+        return deletedSmells;
     }
 
     public CommitSmell(String smellName, int commitNumber, String sha, String status, String developer) {
@@ -32,9 +37,10 @@ public class CommitSmell implements Comparable<CommitSmell> {
         this.developer = developer;
     }
 
-    public void setSmells(Tuple<Integer, Integer> smells) {
+    public void setSmells(Tuple<Integer, Integer, Integer> smells) {
         this.introducedSmells = smells.introduced;
         this.refactoredSmells = smells.refactored;
+        this.deletedSmells = smells.deleted;
     }
 
     public int compareTo(CommitSmell commitSmell) {

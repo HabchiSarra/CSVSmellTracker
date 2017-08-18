@@ -44,16 +44,21 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
     private static final String DEV_EMAIL = "email";
     private static final String REFACTORED_SELF = "self_smells_R";
     private static final String REFACTORED_OTHER = "other_dev_smells_R";
+    private static final String DELETED_SELF = "self_smells_D";
+    private static final String DELETED_OTHER = "other_dev_smells_D";
     private static final String RATIO_I = "ratio_I";
     private static final String RATIO_R = "ratio_R";
+    private static final String RATIO_D = "ratio_D";
     private static final String ANALYZED_COMMITS = "commits_analyzed";
     private static final String RATIO_ANALYZED_COMMITS = "ratio_Ca";
     private static final String RATIO_I_CA = "ratio_I_Ca";
     private static final String RATIO_R_CA = "ratio_R_Ca";
+    private static final String RATIO_D_CA = "ratio_D_Ca";
     private static final String PROJECT_COMMITS = "nb_commits_project";
     private static final String RATIO_PROJECT_COMMITS = "ratio_Cp";
     private static final String RATIO_I_CP = "ratio_I_Cp";
     private static final String RATIO_R_CP = "ratio_R_Cp";
+    private static final String RATIO_D_CP = "ratio_D_Cp";
 
     /**
      * Project identifier to write if nothing is set.
@@ -112,10 +117,12 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
             if (!commit.smellName.equals(NO_SMELL_CODE)) {
                 totalI += commit.introduced();
                 totalR += commit.refactored();
-                devIntroducedRefactored.addSmells(commit.developer, commit.introduced(), commit.refactored());
+                devIntroducedRefactored.addSmells(commit.developer,
+                        commit.introduced(), commit.refactored(), commit.deleted());
 
                 Developer developer = devParser.getDevelopers().get(commit.developer);
-                developer.updateSmell(commit.smellName, commit.introduced(), commit.refactored());
+                developer.updateSmell(commit.smellName,
+                        commit.introduced(), commit.refactored(), commit.deleted());
             }
         }
 
@@ -144,7 +151,7 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
     private void writeCommitLine(FileWriter fileWriter, String devId, Project project,
                                  Map<String, Developer> developers, int totalI, int totalR) {
         Developer dev = developers.get(devId);
-        Tuple<Integer, Integer> smells = devIntroducedRefactored.get(devId);
+        Tuple<Integer, Integer, Integer> smells = devIntroducedRefactored.get(devId);
         printLine(fileWriter, getContentLine(project, dev, smells, totalI, totalR));
     }
 
@@ -158,30 +165,37 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
 
         header.add(INTRODUCED_KEY);
         header.add(REFACTORED_KEY);
+        header.add(DELETED_KEY);
         header.add(REFACTORED_SELF);
         header.add(REFACTORED_OTHER);
+        header.add(DELETED_SELF);
+        header.add(DELETED_OTHER);
         header.add(RATIO_I);
         header.add(RATIO_R);
+        header.add(RATIO_D);
 
         header.add(ANALYZED_COMMITS);
         header.add(RATIO_ANALYZED_COMMITS);
         header.add(RATIO_I_CA);
         header.add(RATIO_R_CA);
+        header.add(RATIO_D_CA);
 
         header.add(PROJECT_COMMITS);
         header.add(RATIO_PROJECT_COMMITS);
         header.add(RATIO_I_CP);
         header.add(RATIO_R_CP);
+        header.add(RATIO_D_CP);
 
         for (SmellCode smellCode : SmellCode.values()) {
             header.add(smellCode.name() + "_" + INTRODUCED_KEY);
             header.add(smellCode.name() + "_" + REFACTORED_KEY);
+            header.add(smellCode.name() + "_" + DELETED_KEY);
         }
 
         return header;
     }
 
-    private List<String> getContentLine(Project project, Developer dev, Tuple<Integer, Integer> smells,
+    private List<String> getContentLine(Project project, Developer dev, Tuple<Integer, Integer, Integer> smells,
                                         int totalI, int totalR) {
         List<String> line = new ArrayList<>();
         line.add(projectName);
@@ -191,34 +205,42 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
 
         line.add(String.valueOf(smells.introduced));
         line.add(String.valueOf(smells.refactored));
+        line.add(String.valueOf(smells.deleted));
         line.add(String.valueOf(devHandler.countSelfRefactored(dev.id)));
         line.add(String.valueOf(devHandler.countOtherRefactored(dev.id)));
+        line.add(String.valueOf(devHandler.countSelfDeleted(dev.id)));
+        line.add(String.valueOf(devHandler.countOtherDeleted(dev.id)));
 
         float ratioI = smells.introduced / (float) totalI;
         line.add(String.valueOf(ratioI));
         float ratioR = smells.refactored / (float) totalR;
         line.add(String.valueOf(ratioR));
+        float ratioD = smells.deleted / (float) totalR;
+        line.add(String.valueOf(ratioD));
 
-        addCommitsRatio(line, dev.getAnalyzedCommits(), project.getAnalyzedCommits(), ratioI, ratioR);
+        addCommitsRatio(line, dev.getAnalyzedCommits(), project.getAnalyzedCommits(), ratioI, ratioR, ratioD);
 
-        addCommitsRatio(line, dev.getTotalCommits(), project.getTotalCommits(), ratioI, ratioR);
+        addCommitsRatio(line, dev.getTotalCommits(), project.getTotalCommits(), ratioI, ratioR, ratioD);
 
         // Ensure that the iteration is in the same order as in Header line
-        Tuple<Integer, Integer> count;
+        Tuple<Integer, Integer, Integer> count;
         for (SmellCode smellCode : SmellCode.values()) {
             count = dev.getSmellCounts(smellCode.name());
             line.add(String.valueOf(count.introduced));
             line.add(String.valueOf(count.refactored));
+            line.add(String.valueOf(count.deleted));
         }
 
         return line;
     }
 
-    private void addCommitsRatio(List<String> line, int devCommits, float projectCommits, float ratioI, float ratioR) {
+    private void addCommitsRatio(List<String> line, int devCommits, float projectCommits,
+                                 float ratioI, float ratioR, float ratioD) {
         float commitRatio = devCommits / projectCommits;
         line.add(String.valueOf(devCommits));
         line.add(String.valueOf(commitRatio));
         line.add(String.valueOf(ratioI / commitRatio));
         line.add(String.valueOf(ratioR / commitRatio));
+        line.add(String.valueOf(ratioD / commitRatio));
     }
 }

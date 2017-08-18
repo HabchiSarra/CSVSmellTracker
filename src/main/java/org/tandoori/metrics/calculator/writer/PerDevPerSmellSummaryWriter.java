@@ -54,7 +54,7 @@ public class PerDevPerSmellSummaryWriter extends CommonSmellSummaryWriter implem
             }
             if (!commit.smellName.equals(NO_SMELL_CODE)) {
                 SmellStore store = smellIntroducedRefactored.get(commit.smellName);
-                store.addSmells(commit.developer, commit.introduced(), commit.refactored());
+                store.addSmells(commit.developer, commit.introduced(), commit.refactored(), commit.deleted());
             }
         }
         writeCommitLine(fileWriter);
@@ -67,15 +67,15 @@ public class PerDevPerSmellSummaryWriter extends CommonSmellSummaryWriter implem
         for (String devId : devHandler.sortedDevelopers()) {
             header.add(devId + "-" + INTRODUCED_KEY);
             header.add(devId + "-" + REFACTORED_KEY);
+            header.add(devId + "-" + DELETED_KEY);
         }
         return header;
     }
 
     private void writeCommitLine(FileWriter fileWriter) {
-        String[] devs = devHandler.sortedDevelopers();
         List<String> line;
 
-        Tuple<Integer, Integer> smells;
+        Tuple<Integer, Integer, Integer> smells;
         SmellStore store;
         for (SmellCode smell : SmellCode.values()) {
             line = new ArrayList<>();
@@ -86,6 +86,7 @@ public class PerDevPerSmellSummaryWriter extends CommonSmellSummaryWriter implem
                 smells = store.get(devId);
                 line.add(String.valueOf(smells.introduced));
                 line.add(String.valueOf(smells.refactored));
+                line.add(String.valueOf(smells.deleted));
             }
             printLine(fileWriter, line);
         }

@@ -18,6 +18,7 @@ public abstract class CommonSmellSummaryWriter {
 
     static final String REFACTORED_KEY = "R";
     static final String INTRODUCED_KEY = "I";
+    static final String DELETED_KEY = "D";
     DevelopersHandler devHandler;
 
     private final File outputCsvFile;

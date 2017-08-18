@@ -28,6 +28,16 @@ public interface DevelopersHandler {
     void notifyRefactored(String developer, String smellId);
 
     /**
+     * Add the smell definitions to smells deleted by the developer.
+     * This means that the developer did not actually fixed the smell
+     * but removed the associated source code.
+     *
+     * @param developer The developer ID.
+     * @param smellId   The smell ID.
+     */
+    void notifyDeleted(String developer, String smellId);
+
+    /**
      * Count the total number of introduced smells by the developer.
      *
      * @param developer The developer ID.
@@ -58,6 +68,30 @@ public interface DevelopersHandler {
      * @return The count of refactored smells.
      */
     long countOtherRefactored(String developer);
+
+    /**
+     * Count the total number of deleted smells by the developer.
+     *
+     * @param developer The developer ID.
+     * @return The count of deleted smells.
+     */
+    long countDeleted(String developer);
+
+    /**
+     * Count the total number of deleted smells introduced by the same developer.
+     *
+     * @param developer The developer ID.
+     * @return The count of deleted smells.
+     */
+    long countSelfDeleted(String developer);
+
+    /**
+     * Count the total number of deleted smells introduced by other developers.
+     *
+     * @param developer The developer ID.
+     * @return The count of deleted smells.
+     */
+    long countOtherDeleted(String developer);
 
     /**
      * Returns the number of synchronized developers.

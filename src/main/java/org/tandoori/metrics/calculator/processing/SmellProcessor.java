@@ -3,6 +3,8 @@ package org.tandoori.metrics.calculator.processing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.DevelopersHandler;
+import org.tandoori.metrics.calculator.SmellCode;
+import org.tandoori.metrics.calculator.processing.verification.SmellChecker;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,12 +27,15 @@ class SmellProcessor {
     private final File inputCsvFile;
     private List<String> orderedCommits;
     private final DevelopersHandler developersHandler;
+    private SmellChecker smellChecker;
 
-    SmellProcessor(String smellName, File inputCsvFile, List<String> orderedCommits, DevelopersHandler developersHandler) {
+    SmellProcessor(String smellName, File inputCsvFile, List<String> orderedCommits,
+                   DevelopersHandler developersHandler, SmellChecker smellChecker) {
         this.smellName = smellName;
         this.inputCsvFile = inputCsvFile;
         this.orderedCommits = orderedCommits;
         this.developersHandler = developersHandler;
+        this.smellChecker = smellChecker;
     }
 
     List<CommitSmell> process() {
@@ -47,6 +52,7 @@ class SmellProcessor {
         List<String> currentSmells = new ArrayList<>();
         CommitSmell parsedCommit = null;
         Collection<InputSmell> smells;
+        Tuple<Integer, Integer, Integer> smellsCount;
         for (String commit : orderedCommits) {
             logger.debug("Handling commit: " + commit);
             // Smell may be null if no smell has been found on this commit
@@ -58,7 +64,8 @@ class SmellProcessor {
                         if (parsedCommit != null) {
                             // Do not count output smells on first iteration
                             logger.trace("Counting output smells for commit n°" + parsedCommit.commitNumber);
-                            parsedCommit.setSmells(compareCommits(parsedCommit.developer, previousSmells, currentSmells));
+                            smellsCount = compareCommits(parsedCommit.sha, parsedCommit.developer, previousSmells, currentSmells);
+                            parsedCommit.setSmells(smellsCount);
                             commits.add(parsedCommit);
                             previousSmells = currentSmells;
                             currentSmells = new ArrayList<>();
@@ -80,7 +87,8 @@ class SmellProcessor {
 
         // Add the last commit if any
         if (parsedCommit != null) {
-            parsedCommit.setSmells(compareCommits(parsedCommit.developer, previousSmells, currentSmells));
+            smellsCount = compareCommits(parsedCommit.sha, parsedCommit.developer, previousSmells, currentSmells);
+            parsedCommit.setSmells(smellsCount);
             commits.add(parsedCommit);
         }
         return commits;
@@ -119,20 +127,31 @@ class SmellProcessor {
         return smellMap;
     }
 
-    private Tuple<Integer, Integer> compareCommits(String developer, List<String> previousInstances, List<String> currentInstances) {
+    private Tuple<Integer, Integer, Integer> compareCommits(String commitHash, String developer,
+                                                            List<String> previousInstances, List<String> currentInstances) {
         List<String> intersect = new ArrayList<>(currentInstances);
         intersect.retainAll(previousInstances);
 
         notifyIntroducedSmells(developer, currentInstances, intersect);
 
-        notifyRefactoredSmells(developer, previousInstances, intersect);
+        int countDeleted = notifyRefactoredSmells(commitHash, developer, previousInstances, intersect);
 
         int countIntroduced = currentInstances.size() - intersect.size();
         int countRefactored = previousInstances.size() - intersect.size();
-        logger.debug("Found " + countIntroduced + " smells introduced and " + countRefactored + " smells refactored");
-        return new Tuple<>(countIntroduced, countRefactored);
+
+        logger.debug("Found " + countIntroduced + " smells introduced, " + countRefactored + " smells refactored, " +
+                "and " + countDeleted + " smells deleted.");
+        return new Tuple<>(countIntroduced, countRefactored - countDeleted, countDeleted);
     }
 
+    /**
+     * Associates the introduced smells to the right developer to handle precise statistics about
+     * introduction and refactoring.
+     *
+     * @param developer        The commit author.
+     * @param currentInstances The smells present in the new commit.
+     * @param intersect        The intersection between the previous smells and the new ones.
+     */
     private void notifyIntroducedSmells(String developer, List<String> currentInstances, List<String> intersect) {
         List<String> introduced = new ArrayList<>(currentInstances);
         introduced.removeAll(intersect);
@@ -141,11 +160,29 @@ class SmellProcessor {
         }
     }
 
-    private void notifyRefactoredSmells(String developer, List<String> previousInstances, List<String> intersect) {
+    /**
+     * Associates the refactored smells to the right developer to handle precise statistics about
+     * introduction and refactoring.
+     *
+     * @param commitHash        The commit in which the refactoring is happening.
+     * @param developer         The commit author.
+     * @param previousInstances The previously existing smells.
+     * @param intersect         The intersection between the previous smells and the new ones.
+     * @return The number of deleted smells, i.e. the smells that are not present anymore but were not actually refactored.
+     */
+    private int notifyRefactoredSmells(String commitHash, String developer,
+                                       List<String> previousInstances, List<String> intersect) {
+        int nbDeleted = 0;
         List<String> refactored = new ArrayList<>(previousInstances);
         refactored.removeAll(intersect);
         for (String smell : refactored) {
-            developersHandler.notifyRefactored(developer, smell);
+            if (smellChecker.isActualRefactoring(SmellCode.valueOf(smellName), smell, commitHash)) {
+                developersHandler.notifyRefactored(developer, smell);
+            } else {
+                developersHandler.notifyDeleted(developer, smell);
+                nbDeleted++;
+            }
         }
+        return nbDeleted;
     }
 }

@@ -21,11 +21,11 @@ public class Developer extends CommitCounter {
         smellsByName = new SmellStore();
     }
 
-    public void updateSmell(String name, Integer introduced, Integer refactored) {
-        smellsByName.addSmells(name, introduced, refactored);
+    public void updateSmell(String name, int introduced, int refactored, int deleted) {
+        smellsByName.addSmells(name, introduced, refactored, deleted);
     }
 
-    public Tuple<Integer, Integer> getSmellCounts(String name) {
+    public Tuple<Integer, Integer, Integer> getSmellCounts(String name) {
         return smellsByName.get(name);
     }
 }
