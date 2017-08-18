@@ -10,22 +10,24 @@ import java.util.Map;
  * for a given key, either a smell name or a developer ID.
  */
 public class SmellStore {
-    private Map<String, Tuple<Integer, Integer>> smells;
+    private Map<String, Tuple<Integer, Integer, Integer>> smells;
 
     public SmellStore() {
         smells = new HashMap<>();
     }
 
-    public void addSmells(String name, int introduced, int refactored) {
-        Tuple<Integer, Integer> devSmells = smells.getOrDefault(name, new Tuple<>(0, 0));
+    public void addSmells(String name, int introduced, int refactored, int deleted) {
+        Tuple<Integer, Integer, Integer> devSmells = smells.getOrDefault(name, new Tuple<>(0, 0, 0));
 
         smells.put(name, new Tuple<>(
-                devSmells.introduced + introduced,
-                devSmells.refactored + refactored)
+                        devSmells.introduced + introduced,
+                        devSmells.refactored + refactored,
+                        devSmells.deleted + deleted
+                )
         );
     }
 
-    public Tuple<Integer, Integer> get(String name) {
-        return smells.getOrDefault(name, new Tuple<>(0, 0));
+    public Tuple<Integer, Integer, Integer> get(String name) {
+        return smells.getOrDefault(name, new Tuple<>(0, 0, 0));
     }
 }

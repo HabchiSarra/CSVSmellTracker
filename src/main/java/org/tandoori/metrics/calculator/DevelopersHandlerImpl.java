@@ -19,6 +19,10 @@ public class DevelopersHandlerImpl implements DevelopersHandler {
 
     private final Map<String, Integer> developerOtherRefactored = new HashMap<>();
 
+    private final Map<String, Integer> developerSelfDeleted = new HashMap<>();
+
+    private final Map<String, Integer> developerOtherDeleted = new HashMap<>();
+
 
     @Override
     public void notifyIntroduced(String developer, String smellId) {
@@ -37,6 +41,16 @@ public class DevelopersHandlerImpl implements DevelopersHandler {
         }
     }
 
+    @Override
+    public void notifyDeleted(String developer, String smellId) {
+        Set<String> introduced = developersIntroduced.get(developer);
+        if (introduced != null && introduced.contains(smellId)) {
+            addOneToCounter(developer, developerSelfDeleted);
+        } else {
+            addOneToCounter(developer, developerOtherDeleted);
+        }
+    }
+
     private static void addOneToCounter(String developer, Map<String, Integer> refactorCounter) {
         Integer selfRefactored = refactorCounter.getOrDefault(developer, 0);
         selfRefactored += 1;
@@ -44,13 +58,13 @@ public class DevelopersHandlerImpl implements DevelopersHandler {
     }
 
     @Override
-    public long countRefactored(String developer) {
-        return developersSelfRefactored.getOrDefault(developer, 0) + developerOtherRefactored.getOrDefault(developer, 0);
+    public long countIntroduced(String developer) {
+        return developersIntroduced.getOrDefault(developer, new HashSet<>()).size();
     }
 
     @Override
-    public long countIntroduced(String developer) {
-        return developersIntroduced.getOrDefault(developer, new HashSet<>() ).size();
+    public long countRefactored(String developer) {
+        return countSelfRefactored(developer) + countOtherRefactored(developer);
     }
 
     @Override
@@ -60,7 +74,22 @@ public class DevelopersHandlerImpl implements DevelopersHandler {
 
     @Override
     public long countOtherRefactored(String developer) {
-        return countRefactored(developer) - countSelfRefactored(developer);
+        return developerOtherRefactored.getOrDefault(developer, 0);
+    }
+
+    @Override
+    public long countDeleted(String developer) {
+        return countSelfDeleted(developer) + countOtherDeleted(developer);
+    }
+
+    @Override
+    public long countSelfDeleted(String developer) {
+        return developerSelfDeleted.getOrDefault(developer, 0);
+    }
+
+    @Override
+    public long countOtherDeleted(String developer) {
+        return developerOtherDeleted.getOrDefault(developer, 0);
     }
 
     @Override

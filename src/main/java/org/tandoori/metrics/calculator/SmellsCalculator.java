@@ -5,6 +5,9 @@ import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.processing.SmellsProcessor;
+import org.tandoori.metrics.calculator.processing.verification.HappySmellChecker;
+import org.tandoori.metrics.calculator.processing.verification.Neo4jSmellChecker;
+import org.tandoori.metrics.calculator.processing.verification.SmellChecker;
 import org.tandoori.metrics.calculator.writer.PerDevPerCommitPerSmellSummaryWriter;
 import org.tandoori.metrics.calculator.writer.PerDevPerSmellSummaryWriter;
 import org.tandoori.metrics.calculator.writer.PerDevSummaryWriter;
@@ -45,10 +48,15 @@ public class SmellsCalculator {
     @Option(name = "-l", required = true, usage = "Project commits in topological order")
     public File logs;
 
+
+    @Option(name = "-db", usage = "Provide project database path for further smell refactoring verification")
+    public File dbPath;
+
     public void generateReport() {
         List<File> smellsFile = getFiles();
         DevelopersHandler devHandler = new DevelopersHandlerImpl();
-        SmellsProcessor smellsProcessor = new SmellsProcessor(smellsFile, devHandler, getCommitInOrder());
+        SmellChecker smellChecker = dbPath != null ? new Neo4jSmellChecker(dbPath) : new HappySmellChecker();
+        SmellsProcessor smellsProcessor = new SmellsProcessor(smellsFile, devHandler, getCommitInOrder(), smellChecker);
         if (outputDir.isFile()) {
             logger.error("Output should be a directory, got a file instead: " + outputDir.getAbsolutePath());
             return;

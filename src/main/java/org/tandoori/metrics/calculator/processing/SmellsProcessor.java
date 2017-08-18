@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.DevelopersHandler;
 import org.tandoori.metrics.calculator.SmellCode;
+import org.tandoori.metrics.calculator.processing.verification.SmellChecker;
 import org.tandoori.metrics.calculator.writer.SmellWriter;
 
 import java.io.File;
@@ -26,12 +27,15 @@ public class SmellsProcessor {
     private List<File> smellFiles;
     private final DevelopersHandler devHandler;
     private List<String> orderedCommits;
+    private SmellChecker smellChecker;
     private final Set<SmellWriter> outputs;
 
-    public SmellsProcessor(List<File> smellFiles, DevelopersHandler devHandler, List<String> orderedCommits) {
+    public SmellsProcessor(List<File> smellFiles, DevelopersHandler devHandler,
+                           List<String> orderedCommits, SmellChecker smellChecker) {
         this.smellFiles = smellFiles;
         this.devHandler = devHandler;
         this.orderedCommits = orderedCommits;
+        this.smellChecker = smellChecker;
         outputs = new HashSet<>();
     }
 
@@ -48,7 +52,7 @@ public class SmellsProcessor {
             // If we can't parse the file name we consider it as non-smell file
             if (smell != null) {
                 logger.info("Processing smell file: " + smellFile.getName());
-                processor = new SmellProcessor(smell, smellFile, orderedCommits, devHandler);
+                processor = new SmellProcessor(smell, smellFile, orderedCommits, devHandler, smellChecker);
                 commits.addAll(processor.process());
             }
         }

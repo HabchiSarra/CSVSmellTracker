@@ -45,7 +45,7 @@ public class PerDevPerCommitPerSmellSummaryWriter extends CommonSmellSummaryWrit
             }
             // Add the stats of the current smell to the right commit.
             if (!commit.smellName.equals(NO_SMELL_CODE)) {
-                currentOutput.setSmellCount(commit.smellName, commit.introduced(), commit.refactored());
+                currentOutput.setSmellCount(commit.smellName, commit.introduced(), commit.refactored(), commit.deleted());
             }
         }
     }
@@ -60,6 +60,7 @@ public class PerDevPerCommitPerSmellSummaryWriter extends CommonSmellSummaryWrit
             for (SmellCode smellCode : SmellCode.values()) {
                 header.add(devId + "-" + smellCode.name() + "-" + INTRODUCED_KEY);
                 header.add(devId + "-" + smellCode.name() + "-" + REFACTORED_KEY);
+                header.add(devId + "-" + smellCode.name() + "-" + DELETED_KEY);
             }
         }
         return header;
