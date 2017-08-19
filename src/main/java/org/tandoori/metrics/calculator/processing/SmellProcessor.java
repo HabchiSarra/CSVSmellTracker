@@ -54,7 +54,7 @@ class SmellProcessor {
         Collection<InputSmell> smells;
         Tuple<Integer, Integer, Integer> smellsCount;
         for (String commit : orderedCommits) {
-            logger.debug("Handling commit: " + commit);
+            logger.trace("Handling commit: " + commit);
             // Smell may be null if no smell has been found on this commit
             if (smellMap.containsKey(commit)) {
                 smells = smellMap.get(commit);
@@ -71,7 +71,7 @@ class SmellProcessor {
                             currentSmells = new ArrayList<>();
                         }
 
-                        logger.debug("Switching to commit n°" + smell.commitNumber);
+                        logger.trace("Switching to commit n°" + smell.commitNumber);
                         parsedCommit = new CommitSmell(smellName, smell.commitNumber, smell.commitSha, smell.status, smell.developer);
                         currentSmells.add(smell.name);
                         developersHandler.notify(smell.developer);
@@ -137,11 +137,11 @@ class SmellProcessor {
         int countDeleted = notifyRefactoredSmells(commitHash, developer, previousInstances, intersect);
 
         int countIntroduced = currentInstances.size() - intersect.size();
-        int countRefactored = previousInstances.size() - intersect.size();
+        int countRefactored = previousInstances.size() - intersect.size() - countDeleted;
 
-        logger.debug("Found " + countIntroduced + " smells introduced, " + countRefactored + " smells refactored, " +
-                "and " + countDeleted + " smells deleted.");
-        return new Tuple<>(countIntroduced, countRefactored - countDeleted, countDeleted);
+        logger.debug("Found " + countIntroduced + " smells introduced, " + countRefactored
+                + " smells refactored, and " + countDeleted + " smells deleted.");
+        return new Tuple<>(countIntroduced, countRefactored, countDeleted);
     }
 
     /**

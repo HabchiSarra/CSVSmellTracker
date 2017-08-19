@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tandoori.metrics.calculator.processing.SmellsProcessor;
 import org.tandoori.metrics.calculator.processing.verification.HappySmellChecker;
-import org.tandoori.metrics.calculator.processing.verification.Neo4jSmellChecker;
+import org.tandoori.metrics.calculator.processing.verification.neo4j.Neo4jSmellChecker;
 import org.tandoori.metrics.calculator.processing.verification.SmellChecker;
 import org.tandoori.metrics.calculator.writer.PerDevPerCommitPerSmellSummaryWriter;
 import org.tandoori.metrics.calculator.writer.PerDevPerSmellSummaryWriter;
