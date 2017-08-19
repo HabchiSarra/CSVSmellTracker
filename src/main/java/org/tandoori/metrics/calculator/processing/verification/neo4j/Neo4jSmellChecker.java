@@ -16,7 +16,6 @@ public class Neo4jSmellChecker implements SmellChecker {
     public boolean isActualRefactoring(SmellCode code, String instance, String commitHash) {
         switch (code) {
             case HMU:
-            case IGS:
             case IOD:
             case IWR:
             case MIM:
