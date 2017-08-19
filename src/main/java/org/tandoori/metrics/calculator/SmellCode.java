@@ -5,16 +5,15 @@ package org.tandoori.metrics.calculator;
  * and their offset in the output CSV file.
  */
 public enum SmellCode {
-     HMU(0),
-     IGS(1),
-     IOD(2),
-     IWR(3),
-     LIC(4),
-     MIM(5),
-     NLMR(6),
-     UCS(7),
-     UHA(8),
-     UIO(9);
+    HMU(0),
+    IOD(1),
+    IWR(2),
+    LIC(3),
+    MIM(4),
+    NLMR(5),
+    UCS(6),
+    UHA(7),
+    UIO(8);
 
     public final int offset;
 
