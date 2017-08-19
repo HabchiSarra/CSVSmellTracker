@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,50 +48,42 @@ class SmellProcessor {
 
     private List<CommitSmell> orderedProcess(Map<String, Collection<InputSmell>> smellMap) {
         List<CommitSmell> commits = new ArrayList<>();
-        int previousCommit = -1;
         List<String> previousSmells = new ArrayList<>();
         List<String> currentSmells = new ArrayList<>();
         CommitSmell parsedCommit = null;
         Collection<InputSmell> smells;
         Tuple<Integer, Integer, Integer> smellsCount;
+
         for (String commit : orderedCommits) {
             logger.trace("Handling commit: " + commit);
-            // Smell may be null if no smell has been found on this commit
-            if (smellMap.containsKey(commit)) {
-                smells = smellMap.get(commit);
-                for (InputSmell smell : smells) {
 
-                    if (smell.commitNumber != previousCommit) {
-                        if (parsedCommit != null) {
-                            // Do not count output smells on first iteration
-                            logger.trace("Counting output smells for commit n°" + parsedCommit.commitNumber);
-                            smellsCount = compareCommits(parsedCommit.sha, parsedCommit.developer, previousSmells, currentSmells);
-                            parsedCommit.setSmells(smellsCount);
-                            commits.add(parsedCommit);
-                            previousSmells = currentSmells;
-                            currentSmells = new ArrayList<>();
-                        }
-
-                        logger.trace("Switching to commit n°" + smell.commitNumber);
-                        parsedCommit = new CommitSmell(smellName, smell.commitNumber, smell.commitSha, smell.status, smell.developer);
-                        currentSmells.add(smell.name);
-                        developersHandler.notify(smell.developer);
-                        previousCommit = parsedCommit.commitNumber;
-                    } else {
-                        if (smell.hasSmell()) {
-                            currentSmells.add(smell.name);
-                        }
-                    }
+            smells = smellMap.getOrDefault(commit, Collections.emptyList());
+            for (InputSmell smell : smells) {
+                // We create the parsed commit from the first smell
+                if (parsedCommit == null) {
+                    parsedCommit = new CommitSmell(smellName, smell.commitNumber, smell.commitSha, smell.status, smell.developer);
                 }
+                // We add every smells linked to this commit which is not tagged as NO_SMELL
+                if (smell.hasSmell() && !currentSmells.contains(smell.name)) {
+                    currentSmells.add(smell.name);
+                }
+                // We notify every developer of the project who worked on smelly code
+                developersHandler.notify(smell.developer);
+            }
+
+            if (parsedCommit != null) {
+                logger.trace("Counting output smells for commit n°" + parsedCommit.commitNumber);
+                smellsCount = compareCommits(parsedCommit.sha, parsedCommit.developer, previousSmells, currentSmells);
+                parsedCommit.setSmells(smellsCount);
+                commits.add(parsedCommit);
+
+                // Resetting loop data
+                previousSmells = currentSmells;
+                currentSmells = new ArrayList<>();
+                parsedCommit = null;
             }
         }
 
-        // Add the last commit if any
-        if (parsedCommit != null) {
-            smellsCount = compareCommits(parsedCommit.sha, parsedCommit.developer, previousSmells, currentSmells);
-            parsedCommit.setSmells(smellsCount);
-            commits.add(parsedCommit);
-        }
         return commits;
     }
 
