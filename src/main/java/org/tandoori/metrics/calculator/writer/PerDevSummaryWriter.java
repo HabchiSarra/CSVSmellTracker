@@ -23,12 +23,12 @@ import static org.tandoori.metrics.calculator.processing.SmellsProcessor.NO_SMEL
 /**
  * Count the overall smells introduction and refactoring per developer
  * The output will be of the form
- *
+ * <p>
  * project, dev_id, name, email, I, R, self_smells_R, other_dev_smells_R ratio_I, ratio_R,
  * nb_commits_analyzed, ratio_Ca, ratio_I_Ca, ratio_R_Ca,
  * nb_commits_project, ratio_Cp, ratio_I_Cp, ratio_R_Cp,
  * S1_I, S1_R, ..., Sn_I, Sn_R
- *
+ * <p>
  * Where:
  * I = Introduced smell
  * R = Refactored smell
@@ -108,6 +108,8 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
         } else {
             logger.warn("No commits provided, output file will be empty");
         }
+
+        Map<String, Developer> developers = devParser.getDevelopers();
         for (CommitSmell commit : commits) {
             // We won't count the smells introduced in the first commit
             // since it will contain every smells in the code so far.
@@ -120,14 +122,17 @@ public class PerDevSummaryWriter extends CommonSmellSummaryWriter implements Sme
                 devIntroducedRefactored.addSmells(commit.developer,
                         commit.introduced(), commit.refactored(), commit.deleted());
 
-                Developer developer = devParser.getDevelopers().get(commit.developer);
-                developer.updateSmell(commit.smellName,
-                        commit.introduced(), commit.refactored(), commit.deleted());
+                if (developers.containsKey(commit.developer)) {
+                    Developer developer = developers.get(commit.developer);
+                    developer.updateSmell(commit.smellName,
+                            commit.introduced(), commit.refactored(), commit.deleted());
+                } else {
+                    logger.warn("Missing developer " + commit.developer);
+                }
             }
         }
 
         Project project = devParser.getProject();
-        Map<String, Developer> developers = devParser.getDevelopers();
         String[] devs = devHandler.sortedDevelopers();
         for (String devId : devs) {
             if (!developers.containsKey(devId)) {
