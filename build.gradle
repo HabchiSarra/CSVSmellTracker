@@ -9,7 +9,7 @@ buildscript {
     }
 }
 
-group 'Tandoori'
+group 'fr.inria.sniffer.metrics'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
@@ -34,7 +34,7 @@ dependencies {
 }
 
 apply plugin: 'application'
-mainClassName = "org.tandoori.metrics.calculator.Main"
+mainClassName = "fr.inria.sniffer.metrics.calculator.Main"
 
 apply plugin: "com.github.johnrengelman.shadow"
 shadowJar {
